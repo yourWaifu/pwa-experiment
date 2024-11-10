@@ -55,9 +55,6 @@ const TopBar = () => {
           id="menu-text" defaultMessage="Main Menu"
           description="placeholder text for main menu" />
       </span>
-      <LocaleChangeButton locale="en-US" />
-      <LocaleChangeButton locale="zh-Hans" />
-      <LocaleChangeButton locale="zh-Hant" />
       <div className="titleBarDragArea" />
     </div>
     <div className="titleBarCenterText">
@@ -159,7 +156,13 @@ const NodeEditor = () => {
 // App
 
 const SidePanel = () => {
-  return <div className="sidePanel"></div>
+  return <div className="sidePanel">
+      <LocaleChangeButton locale="en-US" />
+      <LocaleChangeButton locale="zh-Hans" />
+      <LocaleChangeButton locale="zh-Hant" />
+      <br />
+      <FormattedMessage id="app-description" />
+  </div>
 }
 
 export default function App() {

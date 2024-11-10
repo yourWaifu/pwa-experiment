@@ -233,7 +233,6 @@ const useVisualProgrammingEditorInputs = (ref: React.RefObject<HTMLDivElement>) 
       if (eventCache.size === 1) {
         // one touch, so might be moving around
         let deltaMove = { x: event.movementX, y: event.movementY };
-        console.log(`x: ${deltaMove.x}, y: ${deltaMove.y}`);
         x += deltaMove.x / scale;
         y -= deltaMove.y / scale; // web is inverted
       }
