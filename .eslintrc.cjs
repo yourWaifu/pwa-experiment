@@ -80,5 +80,13 @@ module.exports = {
         node: true,
       },
     },
+
+    // Format js
+    {
+      "plugins": ["formatjs"],
+      "rules": {
+        "formatjs/no-offset": "error"
+      }
+    }
   ],
 };

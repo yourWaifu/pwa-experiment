@@ -1,40 +1,37 @@
-# Welcome to Remix!
+# pwa experiment
 
-- 📖 [Remix docs](https://remix.run/docs)
+a experiment I did a year ago to port an app to web APIs
 
-## Development
-
-Run the dev server:
-
-```shellscript
-npm run dev
 ```
-
-## Deployment
-
-First, build your app for production:
-
-```sh
+npm install
 npm run build
 ```
 
-Then run the app in production mode:
+In another terminal:
 
-```sh
-npm start
+```
+node server.js
 ```
 
-Now you'll need to pick a host to deploy it to.
+## Run in Web
 
-### DIY
+### Prerequisites
 
-If you're familiar with deploying Node applications, the built-in Remix app server is production-ready.
+a broswer with webGPU support, [here's a list of them: https://developer.mozilla.org/en-US/docs/Web/API/WebGPU_API#browser_compatibility](https://developer.mozilla.org/en-US/docs/Web/API/WebGPU_API#browser_compatibility).
 
-Make sure to deploy the output of `npm run build`
+Some of them require enabling webGPU, often as a flag or a option in the settings.
 
-- `build/server`
-- `build/client`
+* [Chrome & Edge: https://developer.chrome.com/blog/new-in-webgpu-113/#enable_the_feature](https://developer.chrome.com/blog/new-in-webgpu-113/#enable_the_feature)
+* [Firefox: https://stackoverflow.com/questions/73706354/how-to-try-webgpu-in-firefox-nightly-now-in-fall-of-2022](https://stackoverflow.com/questions/73706354/how-to-try-webgpu-in-firefox-nightly-now-in-fall-of-2022)
 
-## Styling
+[Test it by loading up a sample: https://webgpu.github.io/webgpu-samples/](https://webgpu.github.io/webgpu-samples/)
 
-This template comes with [Tailwind CSS](https://tailwindcss.com/) already configured for a simple default starting experience. You can use whatever css framework you prefer. See the [Vite docs on css](https://vitejs.dev/guide/features.html#css) for more information.
+## Run
+
+```
+npm install
+npm run build
+node server.js
+```
+
+it should say that the web server started and display a URL. Open that URL in your broswer.

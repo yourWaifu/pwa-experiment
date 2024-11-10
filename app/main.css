@@ -1,0 +1,60 @@
+.titleBar {
+    display: flex; flex-direction: row;
+    width: 100%;
+    -webkit-user-select: none;
+    user-select: none;
+}
+
+.titleBarStart {
+    flex: 1 1 0;
+    display: flex;
+    justify-content: flex-start;
+}
+
+.titleBarDragArea {
+    flex: 1;
+    app-region: drag;
+}
+
+.titleBarCenterText {
+    text-align: center;
+    align-self: center;
+}
+
+.titleBarEnd {
+    flex: 1 1 0;
+    text-align: right;
+    display: flex;
+    justify-content: flex-end;
+    height: 100%;
+}
+
+.viewport {
+    overflow: hidden;
+    flex-grow: 1;
+}
+
+.sidePanel {
+    width: 300px;
+}
+
+.app {
+    display: flex;
+    flex-direction: column;
+    height: 100vh;
+    overflow: hidden;
+}
+
+.rowPanels {
+    display: flex;
+    flex-direction: row;
+    flex-grow: 1;
+    overflow: hidden;
+}
+
+.columnPanels {
+    display: flex;
+    flex-direction: column;
+    flex-grow: 1;
+    overflow: auto;
+}
