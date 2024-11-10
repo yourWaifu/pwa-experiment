@@ -16,9 +16,13 @@ import { init as CameraInit } from "./cameras/main";
 // CSS is imported via Vite's CSS bundling as seen below
 import "./main.css";
 
+const titleMessage = defineMessage({
+  id:"app-name", defaultMessage:"PWA test app"
+});
 export const meta: MetaFunction = () => {
   return [
-    { charSet: "utf-8" }
+    { charSet: "utf-8" },
+    { title: "PWA experiment" }
   ];
 }
 
@@ -58,7 +62,7 @@ const TopBar = () => {
       <div className="titleBarDragArea" />
     </div>
     <div className="titleBarCenterText">
-      <FormattedMessage id="app-name" defaultMessage="PWA test app" />
+      <FormattedMessage {...titleMessage} />
     </div>
     <div className="titleBarEnd">
       <div className="titleBarDragArea" />
@@ -182,22 +186,32 @@ const SidePanel = () => {
   </div>
 }
 
+const Title = () => {
+  const intl = useAtomValue(intlAtom);
+  React.useEffect(() => {
+    // use effect to avoid hydration
+    if (intl) {
+      document.title = intl.formatMessage(titleMessage);
+    }
+  }, [intl]);
+  return <></>;
+}
+
 export default function App() {
   let canvas;
   const [locale] = useAtom(localeAtom);
   useIntlRoot(locale);
 
-  // to do add onKeyDown
   return (
   <html lang={locale}>
     <head>
       <Links />
       <Meta />
+      <Title />
     </head>
     <body style={{margin: 0}}>
       <Scripts />
       <div className="app" onKeyDown={onKeydown} onKeyUp={onKeyUp}>
-        <TopBar />
         <div className="rowPanels" >
           <div className="columnPanels" >
             <Suspense fallback={<ViewportFallback />}><Viewport /></Suspense>
