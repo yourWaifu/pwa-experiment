@@ -5,10 +5,10 @@ import * as React from "react";
 import { useState, Suspense } from 'react';
 import useResizeObserver from "@react-hook/resize-observer";
 import { Links, Meta, Outlet, Scripts } from "@remix-run/react";
-import type { LinksFunction } from "@remix-run/node";
 import { VisualProgrammingEditor } from "./node-graph/graph";
 import { MetaFunction } from "@remix-run/node/dist/index.js";
 import { onKeydown, onKeyUp } from "./keybind.js";
+import { init as CameraInit } from "./cameras/main";
 
 // I'm not using CSS-in-JS for preformance reasons, CSS will be in CSS files or inlined
 // CSS-in-JS requires the app to be rendered before it knows what the styles are. This
@@ -71,37 +71,6 @@ const TopBar = () => {
 
 const gpuIsSupportedAtom = atom(true);
 
-function useResizable(target: React.RefObject<HTMLDivElement>) {
-  const [size, setSize] = React.useState<{
-    width: number, height: number, widthPX: number, heightPX: number
-  }>();
-
-    /*useResizeObserver(target, (entry) => setSize(
-    entry.devicePixelContentBoxSize?.[0] ? {
-      width: entry.devicePixelContentBoxSize[0].inlineSize,
-      height: entry.devicePixelContentBoxSize[0].blockSize,
-      widthPX: entry.contentRect.width,
-      heightPX: entry.contentRect.height
-    } : {
-      width: entry.contentBoxSize[0].inlineSize * devicePixelRatio,
-      height: entry.contentBoxSize[0].blockSize * devicePixelRatio,
-      widthPX: entry.contentBoxSize[0].inlineSize,
-      heightPX: entry.contentBoxSize[0].blockSize,
-    }
-  ))*/
-
-  React.useEffect(() => {
-    let boundingBox = target?.current?.getBoundingClientRect();
-    if (!boundingBox) return;
-    setSize({
-      ...(boundingBox),
-      widthPX: boundingBox?.width,
-      heightPX: boundingBox?.height,
-    });
-  }, []);
-  return size;
-}
-
 // loading screen for viewport
 const ViewportFallback = () => {
   return <p>Loading ...</p>;
@@ -110,32 +79,59 @@ const ViewportFallback = () => {
 // Only render after hydration
 const Viewport = () => {
   const [gpuIsSupported, setGpuIsSupported] = useAtom(gpuIsSupportedAtom);
-  const [canvasError, setCanvasError] = React.useState<string>(null);
+  const [canvasError, setCanvasError] = React.useState<string>("");
+  const [resize, setResize] = React.useState<{resize: ( w:number, h:number ) => void}>();
+  const [{width, height, widthCSS, heightCSS}, setRect] =
+    React.useState<{width: number, height: number, widthCSS: string, heightCSS:string}>(
+      {width: 128, height: 128, widthCSS: "100%", heightCSS: "100%"}
+    );
+  
   let viewportRef = React.createRef<HTMLDivElement>(); // needed for the resize observer
-  const size = useResizable(viewportRef);
-  let width = size?.width ?? 10;
-  let height = size?.height ?? 2;
+  let canvasRef = React.createRef<HTMLCanvasElement>(); // needed for init Camera
+  useViewport(viewportRef, canvasRef, resize?.resize);
 
   return <div ref={viewportRef} className="viewport">
     {
       gpuIsSupported ? <canvas
-        ref={async canvas => {
+        ref={canvas => {
+          if (!canvas || resize) {
+            return;
+          }
           // Init WebGPU
           if (!navigator.gpu) {
             setGpuIsSupported(false);
             setCanvasError("WebGPU not supported on this broswer");
           }
-          const adapter = await navigator.gpu.requestAdapter();
-          if (!adapter) {
-            setGpuIsSupported(false);
-            setCanvasError("request GPU Adapter failed");
-          }
+          (async () => {
+            const adapter = await navigator.gpu.requestAdapter();
+            if (!adapter) {
+              setGpuIsSupported(false);
+              setCanvasError("request GPU Adapter failed");
+            }
 
-          //let devicePromise = CameraInit({canvas});
+            let camera = await CameraInit({canvas});
+            console.log("setting setresize")
+            const resize: ( w:number, h:number ) => void = (width, height) => {
+              if (isNaN(width) || isNaN(height)) {
+                return;
+              }
+              const {device, resizeCanvas} = camera;
+              // we want to keep this the same, so we have edit the values directly
+              setRect({
+                width: Math.max(1, Math.min(width, device.limits.maxTextureDimension2D)),
+                height: Math.max(1, Math.min(height, device.limits.maxTextureDimension2D)),
+                widthCSS: `${width/devicePixelRatio}px`,
+                heightCSS: `${height/devicePixelRatio}px`
+              });
+              resizeCanvas(width, height);
+            };
+            // resize has to be an object, otherwise, setResize calls it
+            setResize({resize});
+          })();
         }}
         width={width} height={height}
         // set width and height for high DPI screens
-        style={{width: `${size?.heightPX ?? 5}px`, height: `${size?.widthPX ?? 1}px`}}
+        style={{width: widthCSS, height: heightCSS}}
         ></canvas>
         : <p>
           <FormattedMessage id="webGPU-not-avaiable"
@@ -145,6 +141,27 @@ const Viewport = () => {
         </p>
     }
   </div>
+}
+
+function useViewport(
+  target: React.RefObject<HTMLDivElement>,
+  canvasRef: React.RefObject<HTMLCanvasElement>,
+  resize: ((w: number, h: number) => void) | undefined
+) {
+  React.useEffect(() => {
+    if (!target.current) {
+      return;
+    }
+    console.log("setting observer")
+    const observer = new ResizeObserver(([entry]) => {
+      let width = entry.devicePixelContentBoxSize[0].inlineSize ??
+        entry.contentBoxSize[0].inlineSize * devicePixelRatio;
+      let height = entry.devicePixelContentBoxSize[0].blockSize ??
+        entry.contentBoxSize[0].blockSize * devicePixelRatio;
+      resize?.(width, height);
+    });
+    observer.observe(target.current);
+  }, [target.current, resize]);
 }
 
 // Node editor

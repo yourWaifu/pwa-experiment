@@ -1,0 +1,1 @@
+Most of the code in this folder wasn't written by me. I have made some edits with how the texture is loaded, the texture, and the model's UV.

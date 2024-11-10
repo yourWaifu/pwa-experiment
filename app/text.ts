@@ -8,7 +8,7 @@ export const text: Record<string, Record<string, string>> = {
     "node2-name": "Results",
     "node2-input-name": "bar",
     "center-label": "Center",
-    "app-description": "In 2023, I worked on CAD software that used Sciter.js, a native framework. Like React, it used JSX, but other then that, it wasn't alike. With that, I built systems for importing npm packages, bundling, and i18n. Saddly, it's closed source. So, I gave myself only 24 to make this, and I hope it's a good show of my skills in React.",
+    "app-description": "In 2023, I worked on CAD software that used Vulkan and Sciter.js, a native framework. Like React, it used JSX, but other then that, it wasn't alike. With that, I built systems for importing npm packages, bundling, and i18n. Saddly, it's closed source. So, I gave myself only 24 to make this, and I hope it's a good show of my skills in React.",
   },
   "zh-Hans": {
     "menu-text": "主菜单",

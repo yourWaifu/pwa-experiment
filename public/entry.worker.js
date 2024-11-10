@@ -60,7 +60,8 @@ const assets = [
   "/entry.worker.js",
   "/favicon.ico",
   "/logo-dark.png",
-  "/logo-light.png"
+  "/logo-light.png",
+  "/img/texture.png"
 ];
 const routes = {
   "root": {
