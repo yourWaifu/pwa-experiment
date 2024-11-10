@@ -1,0 +1,32 @@
+.graph {
+    overflow: hidden;
+    position: relative;
+    touch-action: none;
+}
+
+.nodeContainer {
+    width: fit-content;
+    height: fit-content;
+    position: absolute;
+}
+
+.node {
+    transform: translate(-50%, 100%);
+    display: flex;
+    flex-direction: column;
+    width: fit-content;
+    height: fit-content;
+    background-color: oklch(85% 0.09 186.4);
+}
+
+.input {
+    display: flex;
+    flex-direction: row;
+    text-align: start;
+}
+
+.output {
+    display: flex;
+    flex-direction: row-reverse;
+    text-align: end;
+}

@@ -1,5 +1,6 @@
 import { createIntl, createIntlCache, defineMessage, IntlShape } from "@formatjs/intl";
 import { atom, useAtom } from "jotai";
+import { text } from "./text";
 
 const intlAtom = atom<IntlShape<any>>();
 
@@ -8,17 +9,7 @@ export function generateIntl(locale: string) {
   return createIntl(
     {
       locale: locale,
-      messages: ({
-        'en-US': {
-          'menu-text': 'Menu',
-        },
-        "zh-Hans": {
-          "menu-text": "主菜单"
-        },
-        "zh-Hant": {
-          "menu-text": "主選單"
-        }
-      })[locale],
+      messages: text[locale],
     },
     cache
   );

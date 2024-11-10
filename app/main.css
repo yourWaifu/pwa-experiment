@@ -58,3 +58,7 @@
     flex-grow: 1;
     overflow: auto;
 }
+
+.visualProgrammingEditor {
+    flex-basis: 300px;
+}

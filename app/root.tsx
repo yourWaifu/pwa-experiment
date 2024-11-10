@@ -6,12 +6,21 @@ import { useState, Suspense } from 'react';
 import useResizeObserver from "@react-hook/resize-observer";
 import { Links, Meta, Outlet, Scripts } from "@remix-run/react";
 import type { LinksFunction } from "@remix-run/node";
+import { VisualProgrammingEditor } from "./node-graph/graph";
+import { MetaFunction } from "@remix-run/node/dist/index.js";
+import { onKeydown, onKeyUp } from "./keybind.js";
 
 // I'm not using CSS-in-JS for preformance reasons, CSS will be in CSS files or inlined
 // CSS-in-JS requires the app to be rendered before it knows what the styles are. This
 // breaks a few of Remix's optimzations like defer.
 // CSS is imported via Vite's CSS bundling as seen below
 import "./main.css";
+
+export const meta: MetaFunction = () => {
+  return [
+    { charSet: "utf-8" }
+  ];
+}
 
 // Language changing
 
@@ -40,7 +49,7 @@ const LocaleChangeButton = ({locale}:{locale: string}) => {
 
 const TopBar = () => {
   return <div id="titleBar" className="titleBar">
-    <div className="tilteBarStart">
+    <div className="titleBarStart">
       <span>
         <FormattedMessage
           id="menu-text" defaultMessage="Main Menu"
@@ -52,7 +61,7 @@ const TopBar = () => {
       <div className="titleBarDragArea" />
     </div>
     <div className="titleBarCenterText">
-      PWA Test App
+      <FormattedMessage id="app-name" defaultMessage="PWA test app" />
     </div>
     <div className="titleBarEnd">
       <div className="titleBarDragArea" />
@@ -132,7 +141,9 @@ const Viewport = () => {
         style={{width: `${size?.heightPX ?? 5}px`, height: `${size?.widthPX ?? 1}px`}}
         ></canvas>
         : <p>
-          WebGPU is not supported on this broswer <br />
+          <FormattedMessage id="webGPU-not-avaiable"
+            defaultMessage="webGPU not found in your broswer" />
+          <br />
           {canvasError}
         </p>
     }
@@ -142,7 +153,7 @@ const Viewport = () => {
 // Node editor
 
 const NodeEditor = () => {
-
+  return <VisualProgrammingEditor style={{flexBasis: "300px"}} />
 }
 
 // App
@@ -153,7 +164,6 @@ const SidePanel = () => {
 
 export default function App() {
   let canvas;
-  const [gpuIsSupported, setGpuIsSupported] = useAtom(gpuIsSupportedAtom);
   const [locale] = useAtom(localeAtom);
   useIntlRoot(locale);
 
@@ -166,12 +176,12 @@ export default function App() {
     </head>
     <body style={{margin: 0}}>
       <Scripts />
-      <div className="app">
+      <div className="app" onKeyDown={onKeydown} onKeyUp={onKeyUp}>
         <TopBar />
         <div className="rowPanels" >
           <div className="columnPanels" >
             <Suspense fallback={<ViewportFallback />}><Viewport /></Suspense>
-            {/*<NodeEditor />*/}
+            <Suspense fallback={<ViewportFallback />}><NodeEditor /></Suspense>
           </div>
           <SidePanel />
         </div>
