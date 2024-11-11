@@ -5,6 +5,7 @@ import { atom, useSetAtom, useAtom, useAtomValue} from "jotai";
 import {default as createCXX} from "../cpp-build/rect-project";
 import { useResizeObserver } from "../resizer-observer";
 import { FormattedMessage } from "../intl";
+import style from "./inspector.module.css";
 
 var CXXPromise: any;
 
@@ -13,6 +14,7 @@ type AABB = {
 }
 
 const rectListAtom = atom<AABB[]>([]);
+const selectedAtom = atom<number|null>((get) => get(inspectorDataAtom).index);
 
 export const Editor = () => {
     const [is2DCanvasSupported, setIs2DCanvasSupported] = React.useState(true);
@@ -45,6 +47,7 @@ export function useEditor(
     setIs2DCanvasSupported: (arg:boolean)=>void
 ) {
     const [rectList, setRectList] = useAtom(rectListAtom);
+    const selectedIndex = useAtomValue(selectedAtom);
     React.useEffect(() => {
         if (CXXPromise) {return;}
         CXXPromise = createCXX();
@@ -67,18 +70,30 @@ export function useEditor(
             setIs2DCanvasSupported(false);
             return;
         }
-        renderEditor(ctx, canvasRef.current, rectList)
-    }, [canvasRef, rectList]);
+        renderEditor(ctx, canvasRef.current, rectList, selectedIndex)
+    }, [canvasRef, rectList, selectedIndex]);
 }
 
-export function renderEditor(ctx: CanvasRenderingContext2D, canvas: HTMLCanvasElement, rectList: AABB[]) {
+export function renderEditor(
+    ctx: CanvasRenderingContext2D,
+    canvas: HTMLCanvasElement,
+    rectList: AABB[],
+    selected: number|null
+) {
     ctx.clearRect(0, 0, canvas.width, canvas.height);
-    for (let rect of rectList) {
-        ctx.fillRect(
+    rectList.forEach((rect, index) => {
+        const [x, y, w, h] = [
             rect.ax * devicePixelRatio, rect.ay * devicePixelRatio,
             (rect.bx - rect.ax) * devicePixelRatio, (rect.by - rect.ay) * devicePixelRatio
-        );
-    }
+        ];
+        ctx.fillStyle = "oklch(50.51% 0.1585 30.44)";
+        ctx.fillRect(x, y, w, h);
+        if (index === selected) {
+            ctx.strokeStyle = "oklch(19.04% 0.0425 147.77)";
+            ctx.lineWidth = 2 * devicePixelRatio;
+            ctx.strokeRect(x, y, w, h);
+        }
+    });
 }
 
 export function useEditorOnClick(): React.MouseEventHandler<HTMLCanvasElement> {
@@ -88,18 +103,27 @@ export function useEditorOnClick(): React.MouseEventHandler<HTMLCanvasElement> {
         const viewRect = event.target?.getBoundingClientRect();
         const x = event.clientX - viewRect.left;
         const y = event.clientY - viewRect.top;
-        let clickedRectList = rectList.filter((rect) => {
+        let clickedRectIndex = rectList.findIndex((rect) => {
             // aabb
             return rect.ax <= x && rect.ay <= y && x <= rect.bx && y <= rect.by;
         });
-        if (0 < clickedRectList.length) {
-            let rect = clickedRectList[0];
-            setInspectorDataAtom(<p>
-                ax {rect.ax.toFixed(4)} <span>ay {rect.ay.toFixed(4)}</span><br />
-                bx {rect.bx.toFixed(4)} <span>by {rect.by.toFixed(4)}</span>
-            </p>);
+        console.log(clickedRectIndex);
+        if (clickedRectIndex !== -1) {
+            let rect = rectList[clickedRectIndex];
+            setInspectorDataAtom({
+                index: clickedRectIndex,
+                message: <div className="grid grid-cols-2">
+                    <span className={style.property}><div className={style.label}>ax</div> <div className={style.number}>{rect.ax.toFixed(4)}</div></span>
+                    <span className={style.property}><div className={style.label}>ay</div> <div className={style.number}>{rect.ay.toFixed(4)}</div></span>
+                    <span className={style.property}><div className={style.label}>bx</div> <div className={style.number}>{rect.bx.toFixed(4)}</div></span>
+                    <span className={style.property}><div className={style.label}>by</div> <div className={style.number}>{rect.by.toFixed(4)}</div></span>
+                </div>,
+            });
         } else {
-            setInspectorDataAtom(<p>Null</p>);
+            setInspectorDataAtom({
+                index: null,
+                message: <p>Null</p>,
+            });
         }
     }, [rectList])
 }

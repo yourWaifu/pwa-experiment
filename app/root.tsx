@@ -10,13 +10,14 @@ import { onKeydown, onKeyUp } from "./keybind.js";
 import { init as CameraInit } from "./cameras/main";
 import { Editor, renderEditor, useEditorOnClick } from "./editor/editor";
 import { inspectorDataAtom } from "./editor/inspector";
+import { useResizeObserver } from "./resizer-observer.js";
 
 // I'm not using CSS-in-JS for preformance reasons, CSS will be in CSS files or inlined
 // CSS-in-JS requires the app to be rendered before it knows what the styles are. This
 // breaks a few of Remix's optimzations like defer.
 // CSS is imported via Vite's CSS bundling as seen below
 import "./main.css";
-import { useResizeObserver } from "./resizer-observer.js";
+import "./tailwind.css";
 
 const titleMessage = defineMessage({
   id:"app-name", defaultMessage:"PWA test app"
@@ -44,7 +45,10 @@ function useIntlRoot(locale: string) {
 const LocaleChangeButton = ({locale}:{locale: string}) => {
   const [currentLocale, setLocale] = useAtom(localeAtom);
   const intl = useAtomValue(intlAtom);
-  return <button type="button" onClick={() => setLocale(locale)}>
+  return <button
+    className="bg-sky-200 hover:bg-sky-500 rounded-full px-3 py-1 w-full"
+    type="button" onClick={() => setLocale(locale)}
+  >
     <Suspense fallback={locale}> {
         intl?.formatDisplayName(locale, { type: "language"})
     } </Suspense>
@@ -158,11 +162,12 @@ const NodeEditor = () => {
 // App
 
 const SidePanel = () => {
-  return <div className="sidePanel">
-      <LocaleChangeButton locale="en-US" />
-      <LocaleChangeButton locale="zh-Hans" />
-      <LocaleChangeButton locale="zh-Hant" />
-      <br />
+  return <div className="sidePanel p-2 border-b-2 border-gray-500">
+      <div className="flex flex-initial flex-col space-y-1 mb-2 items-center">
+        <LocaleChangeButton locale="en-US" />
+        <LocaleChangeButton locale="zh-Hans" />
+        <LocaleChangeButton locale="zh-Hant" />
+      </div>
       <FormattedMessage id="app-description" />
   </div>
 }
@@ -170,8 +175,8 @@ const SidePanel = () => {
 const InspectorPanel = () => {
   const inspectorData = useAtomValue(inspectorDataAtom);
 
-  return <div className="sidePanel">
-    {inspectorData}
+  return <div className="sidePanel p-1">
+    {inspectorData.message}
   </div>
 }
 
@@ -207,9 +212,8 @@ export default function App() {
             <Editor />
             <Suspense fallback={<ViewportFallback />}><NodeEditor /></Suspense>
           </div>
-          <div className="columnPanels">
+          <div className="columnPanels border-l">
             <SidePanel />
-            <br />
             <InspectorPanel />
           </div>
         </div>
