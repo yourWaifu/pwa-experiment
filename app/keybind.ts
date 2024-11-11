@@ -8,9 +8,9 @@ function onKey(event: React.KeyboardEvent) {
     isCtrlKeyDown = event.ctrlKey;
 }
 
-export function onKeydown(event: React.KeyboardEvent<HTMLDivElement>) {
+export function onKeydown(event: React.KeyboardEvent<HTMLBodyElement>) {
     onKey(event);
 }
-export function onKeyUp(event: React.KeyboardEvent<HTMLDivElement>) {
+export function onKeyUp(event: React.KeyboardEvent<HTMLBodyElement>) {
     onKey(event);
 }

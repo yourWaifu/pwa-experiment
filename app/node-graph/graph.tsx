@@ -46,10 +46,9 @@ export const VisualProgrammingEditor = ({ style }: { style: React.CSSProperties 
   
   //we need to prevent the default behavior to override them
   // but react uses passive events by default, so we need to add via the event handler
-  const ref = React.createRef<HTMLDivElement>();
-  useVisualProgrammingEditorInputs(ref);
+  let refCallback = useVisualProgrammingEditorInputs();
 
-  return <div className={graphStyle.graph} style={style} ref={ref}>
+  return <div className={graphStyle.graph} style={style} ref={refCallback}>
     <div style={gridStyle()}></div>
     <div style={{
       left: `calc(50% * ${viewTransform.z})`,
@@ -98,7 +97,7 @@ export const VisualProgrammingEditor = ({ style }: { style: React.CSSProperties 
   </div>
 }
 
-const useVisualProgrammingEditorInputs = (ref: React.RefObject<HTMLDivElement>) => {
+const useVisualProgrammingEditorInputs = () => {
   const [viewTransform, setViewTransform] = useAtom(viewTransformAtom);
 
   // store muliple pointers for multi-touch
@@ -107,33 +106,30 @@ const useVisualProgrammingEditorInputs = (ref: React.RefObject<HTMLDivElement>) 
   let [initPinchDistance, setInitPinchDistance] = React.useState<number | null>(null);
   let [initScale, setInitScale] = React.useState<number>(1);
 
-  React.useEffect(() => {
-    if (!ref?.current) {
-      throw new Error("Can not add Editor events to null");
-    }
-    let eventCache = new Map(getEventCache);
+  let eventCache = new Map(getEventCache);
   
-    // these are functions because I can't decide to go with array or map
-    // I might switch again, so these are here to make that easier
-    // remember to remove them once I made up my mind
-    const findInEventCache = (event: PointerEvent) => {
-      return eventCache.get(event.pointerId)
-    };
-    const removeFromCache = (event: PointerEvent) => {
-      return eventCache.delete(event.pointerId);
-    };
-    const addToCache = (event: PointerEvent) => {
-      eventCache.set(event.pointerId, event);
-      return event;
-    }
-    const setCache = (key:any, event: PointerEvent) => { // useful for array
-      return addToCache(event);
-    }
-    const matchCache = (left: any, index: number) => {
-      return left.pointerId === Array.from(eventCache.values())[index].pointerId;
-    }
+  // these are functions because I can't decide to go with array or map
+  // I might switch again, so these are here to make that easier
+  // remember to remove them once I made up my mind
+  const findInEventCache = (event: PointerEvent) => {
+    return eventCache.get(event.pointerId)
+  };
+  const removeFromCache = (event: PointerEvent) => {
+    return eventCache.delete(event.pointerId);
+  };
+  const addToCache = (event: PointerEvent) => {
+    eventCache.set(event.pointerId, event);
+    return event;
+  }
+  const setCache = (key:any, event: PointerEvent) => { // useful for array
+    return addToCache(event);
+  }
+  const matchCache = (left: any, index: number) => {
+    return left.pointerId === Array.from(eventCache.values())[index]?.pointerId;
+  }
 
-    const onWheel = (event: WheelEvent) => {
+  const onWheel = React.useCallback(
+    (event: WheelEvent) => {
       // scale value is different between user agents, we have to handle that here
       const transform = viewTransform;
       let scale = transform.z;
@@ -158,103 +154,111 @@ const useVisualProgrammingEditorInputs = (ref: React.RefObject<HTMLDivElement>) 
       }
       event.preventDefault();
       event.stopPropagation();
-    };
+    },
+    [viewTransform]
+  );
 
-    const onPointerdown = (event: PointerEvent) => {
-      // pen input should be ignored for moving, as pens work very differently
-      if (event.pointerType === "pen") {
-        return;
-      }
-      event.preventDefault();
-    };
-
-    const onPointerup = (event: PointerEvent) => {
-      if (event.pointerType === "pen") {
-        return;
-      }
-      removeFromCache(event);
-      setEventCache(eventCache);
-      event.preventDefault();
-    };
-
-    const onPointermove = (event: PointerEvent) => {
-      // same as before, ignore pen because it's different
-      if (event.pointerType === "pen") {
-        console.log("pen");
-        return;
-      }
-
-      // edge case for when mouse moves out of element
-      let isLeftMouseDown = true;
-      if (event.pointerType === "mouse") {
-        isLeftMouseDown = (event.buttons & 1) !== 0;
-        if (!isLeftMouseDown) {
-          removeFromCache(event);
-          setEventCache(eventCache);
-          return;
-        }
-      }
-
-      let found = findInEventCache(event);
-      if (found === undefined) {
-        found = addToCache(event);
-      }
-      setCache(found, event);
-
-      // zoom gesture check
-      let scale = viewTransform.z;
-      if (eventCache.size === 2) {
-        // calulate distance between touch points
-        const points = Array.from(eventCache.values()).map(event => {
-          return {
-            x: event.clientX,
-            y: event.clientY,
-          };
-        });
-        const box = {
-          x: points[0].x - points[1].x,
-          y: points[0].y - points[1].y,
-        }
-        // euclidean disteance from Pythagoras
-        const distance = Math.sqrt(Math.pow(box.x, 2) + Math.pow(box.y, 2));
-        if (initPinchDistance === null) {
-          setInitPinchDistance(distance);
-          setInitScale(scale);
-          scale = initScale * distance;
-        } else {
-          scale = initScale * (distance / initPinchDistance);
-        }
-      } else {
-        setInitPinchDistance(null);
-        setInitScale(scale);
-      }
-
-      let { x, y } = viewTransform;
-      if (eventCache.size === 1) {
-        // one touch, so might be moving around
-        let deltaMove = { x: event.movementX, y: event.movementY };
-        x += deltaMove.x / scale;
-        y -= deltaMove.y / scale; // web is inverted
-      }
-
-      setViewTransform({
-        x, y,
-        z: scale,
-      });
-      setEventCache(eventCache);
-    };
-
-    ref.current.addEventListener("wheel", onWheel)
-    ref.current.addEventListener("pointerdown", onPointerdown);
-    ref.current.addEventListener("pointerup", onPointerup);
-    ref.current.addEventListener("pointermove", onPointermove);
-
-    let element = ref.current;
-    return () => {
-      element.removeEventListener("wheel", onWheel)
-      element.removeEventListener("pointerdown", onPointerdown);
-      element.removeEventListener("pointerup", onPointerup);
-      element.removeEventListener("pointermove", onPointermove);
+  const onPointerdown = React.useCallback((event: PointerEvent) => {
+    // pen input should be ignored for moving, as pens work very differently
+    if (event.pointerType === "pen") {
+      return;
     }
-  }, [viewTransform, initPinchDistance, initScale]);
+    event.preventDefault();
+  }, []);
+
+  const onPointerup = React.useCallback((event: PointerEvent) => {
+    if (event.pointerType === "pen") {
+      return;
+    }
+    removeFromCache(event);
+    setEventCache(eventCache);
+    event.preventDefault();
+  }, [getEventCache]);
+
+  const onPointermove = React.useCallback((event: PointerEvent) => {
+    // same as before, ignore pen because it's different
+    if (event.pointerType === "pen") {
+      console.log("pen");
+      return;
+    }
+
+    // edge case for when mouse moves out of element
+    let isLeftMouseDown = true;
+    if (event.pointerType === "mouse") {
+      isLeftMouseDown = (event.buttons & 1) !== 0;
+      if (!isLeftMouseDown) {
+        removeFromCache(event);
+        setEventCache(eventCache);
+        return;
+      }
+    }
+
+    let found = findInEventCache(event);
+    if (found === undefined) {
+      found = addToCache(event);
+    }
+    setCache(found, event);
+
+    // zoom gesture check
+    let scale = viewTransform.z;
+    if (eventCache.size === 2) {
+      // calulate distance between touch points
+      const points = Array.from(eventCache.values()).map(event => {
+        return {
+          x: event.clientX,
+          y: event.clientY,
+        };
+      });
+      const box = {
+        x: points[0].x - points[1].x,
+        y: points[0].y - points[1].y,
+      }
+      // euclidean disteance from Pythagoras
+      const distance = Math.sqrt(Math.pow(box.x, 2) + Math.pow(box.y, 2));
+      if (initPinchDistance === null) {
+        setInitPinchDistance(distance);
+        setInitScale(scale);
+        scale = initScale * distance;
+      } else {
+        scale = initScale * (distance / initPinchDistance);
+      }
+    } else {
+      setInitPinchDistance(null);
+      setInitScale(scale);
+    }
+
+    let { x, y } = viewTransform;
+    if (matchCache(event, 0)) { // first pointer, so might be moving around
+      // this doesn't seem to very accurate, fast movement seems to throw it off
+      // probably better to get a path from last a moment ago to current point
+      let deltaMove = { x: event.movementX, y: event.movementY };
+      x += deltaMove.x / scale;
+      y -= deltaMove.y / scale; // web is inverted
+    }
+
+    setViewTransform({
+      x, y,
+      z: scale,
+    });
+    setEventCache(eventCache);
+  }, [viewTransform, getEventCache]);
+  
+  let ref = React.useRef<HTMLDivElement | null>(null);
+  return React.useCallback((node: HTMLDivElement | null) => {
+    if (!node) {
+      if (ref.current) {
+        ref.current.removeEventListener("wheel", onWheel);
+        ref.current.removeEventListener("pointerdown", onPointerdown);
+        ref.current.removeEventListener("pointerup", onPointerup);
+        ref.current.removeEventListener("pointermove", onPointermove);
+      }
+      return;
+    }
+
+    ref.current = node;
+    node.addEventListener("wheel", onWheel, {passive: false})
+    node.addEventListener("pointerdown", onPointerdown, {passive: false});
+    node.addEventListener("pointerup", onPointerup, {passive: false});
+    node.addEventListener("pointermove", onPointermove, {passive: false});
+  }, [onWheel, onPointerdown, onPointermove, onPointerup]);
 }

@@ -209,9 +209,9 @@ export default function App() {
       <Meta />
       <Title />
     </head>
-    <body style={{margin: 0}}>
+    <body style={{margin: 0}} onKeyDown={onKeydown} onKeyUp={onKeyUp}>
       <Scripts />
-      <div className="app" onKeyDown={onKeydown} onKeyUp={onKeyUp}>
+      <div className="app">
         <div className="rowPanels" >
           <div className="columnPanels" >
             <Suspense fallback={<ViewportFallback />}><Viewport /></Suspense>
