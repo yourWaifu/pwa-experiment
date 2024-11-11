@@ -6,7 +6,11 @@ import {
   cubePositionOffset,
   cubeVertexCount,
 } from './meshes/cube';
+import {
+  planeVertexArray
+} from "./meshes/plane"
 import cubeWGSL from "./cube.wgsl";
+import planeWGSL from "./plane.wgsl";
 import { ArcballCamera, WASDCamera/* , cameraSourceInfo */ } from './camera';
 import { createInputHandler/* , inputSourceInfo */ } from './input';
 

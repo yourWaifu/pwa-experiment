@@ -3,3 +3,6 @@ node_modules
 /.cache
 /build
 .env
+rect-project/build
+public/build
+app/cpp-build

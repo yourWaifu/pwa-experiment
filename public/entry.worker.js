@@ -61,7 +61,20 @@ const assets = [
   "/favicon.ico",
   "/logo-dark.png",
   "/logo-light.png",
-  "/img/texture.png"
+  "/build/build.ninja",
+  "/build/CMakeCache.txt",
+  "/build/cmake_install.cmake",
+  "/build/rect-project.js",
+  "/build/rect-project.wasm",
+  "/img/texture.png",
+  "/build/CMakeFiles/cmake.check_cache",
+  "/build/CMakeFiles/CMakeConfigureLog.yaml",
+  "/build/CMakeFiles/rules.ninja",
+  "/build/CMakeFiles/TargetDirectories.txt",
+  "/build/CMakeFiles/3.26.4/CMakeCCompiler.cmake",
+  "/build/CMakeFiles/3.26.4/CMakeCXXCompiler.cmake",
+  "/build/CMakeFiles/3.26.4/CMakeSystem.cmake",
+  "/build/CMakeFiles/rect-project.dir/main.cc.o"
 ];
 const routes = {
   "root": {

@@ -9,6 +9,8 @@ export const text: Record<string, Record<string, string>> = {
     "node2-input-name": "bar",
     "center-label": "Center",
     "app-description": "In 2023, I worked on CAD software that used Vulkan and Sciter.js, a native framework. Like React, it used JSX, but other then that, it wasn't alike. With that, I built systems for importing npm packages, bundling, and i18n. Saddly, it's closed source. So, I gave myself only 24 to make this, and I hope it's a good show of my skills in React.",
+    "2D-canvas-not-available": "2D canvas is not supported on this web browser",
+    "inspector-empty": "Select something in Editor to inspect it",
   },
   "zh-Hans": {
     "menu-text": "主菜单",
@@ -20,6 +22,8 @@ export const text: Record<string, Record<string, string>> = {
     "node2-input-name": "bar 变数",
     "center-label": "中心",
     "app-description": "2023 年，我开发了一款使用原生框架 Sciter.js 的 CAD 软件。与 React 一样，它也使用了 JSX，但除此之外，两者并不相同。借助它，我构建了用于导入 npm 包、捆绑和 i18n 的系统。遗憾的是，它是闭源的，我只给自己 24 分钟的时间来做这件事，我希望这能很好地展示我在 React 方面的技能。顺便说一句，这是机器翻译的。",
+    "2D-canvas-not-available": "此网络浏览器不支持 2D 画布",
+    "inspector-empty": "在编辑器中选择某些内容进行检查",
   },
   "zh-Hant": {
     "menu-text": "主選單",
@@ -31,5 +35,7 @@ export const text: Record<string, Record<string, string>> = {
     "node2-input-name": "bar 變數",
     "center-label": "中心",
     "app-description": "2023 年，我開發了使用 Sciter.js（一個原生框架）的 CAD 軟體。與 React 一樣，它也使用 JSX，但除此之外，它並不相似。這樣，我建立了用於匯入 npm 套件、捆綁和 i18n 的系統。遺憾的是，它是閉源的，我只給了自己 24 小時來完成這個，我希望這是我在 React 方面的一個很好的展示。順便說一句，這是機器翻譯的。",
+    "2D-canvas-not-available": "此 Web 瀏覽器不支援 2D 畫布",
+    "inspector-empty": "在編輯器中選擇某些內容來檢查它",
   }
 };

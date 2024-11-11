@@ -3,18 +3,20 @@ import { generateIntl, intlAtom, FormattedMessage } from "./intl.js";
 import { defineMessage, IntlShape } from "@formatjs/intl";
 import * as React from "react";
 import { useState, Suspense } from 'react';
-import useResizeObserver from "@react-hook/resize-observer";
-import { Links, Meta, Outlet, Scripts } from "@remix-run/react";
+import { Form, Links, Meta, Outlet, Scripts } from "@remix-run/react";
 import { VisualProgrammingEditor } from "./node-graph/graph";
 import { MetaFunction } from "@remix-run/node/dist/index.js";
 import { onKeydown, onKeyUp } from "./keybind.js";
 import { init as CameraInit } from "./cameras/main";
+import { Editor, renderEditor, useEditorOnClick } from "./editor/editor";
+import { inspectorDataAtom } from "./editor/inspector";
 
 // I'm not using CSS-in-JS for preformance reasons, CSS will be in CSS files or inlined
 // CSS-in-JS requires the app to be rendered before it knows what the styles are. This
 // breaks a few of Remix's optimzations like defer.
 // CSS is imported via Vite's CSS bundling as seen below
 import "./main.css";
+import { useResizeObserver } from "./resizer-observer.js";
 
 const titleMessage = defineMessage({
   id:"app-name", defaultMessage:"PWA test app"
@@ -92,7 +94,7 @@ const Viewport = () => {
   
   let viewportRef = React.createRef<HTMLDivElement>(); // needed for the resize observer
   let canvasRef = React.createRef<HTMLCanvasElement>(); // needed for init Camera
-  useViewport(viewportRef, canvasRef, resize?.resize);
+  useResizeObserver(viewportRef, canvasRef, resize?.resize);
 
   return <div ref={viewportRef} className="viewport">
     {
@@ -147,27 +149,6 @@ const Viewport = () => {
   </div>
 }
 
-function useViewport(
-  target: React.RefObject<HTMLDivElement>,
-  canvasRef: React.RefObject<HTMLCanvasElement>,
-  resize: ((w: number, h: number) => void) | undefined
-) {
-  React.useEffect(() => {
-    if (!target.current) {
-      return;
-    }
-    console.log("setting observer")
-    const observer = new ResizeObserver(([entry]) => {
-      let width = entry.devicePixelContentBoxSize[0].inlineSize ??
-        entry.contentBoxSize[0].inlineSize * devicePixelRatio;
-      let height = entry.devicePixelContentBoxSize[0].blockSize ??
-        entry.contentBoxSize[0].blockSize * devicePixelRatio;
-      resize?.(width, height);
-    });
-    observer.observe(target.current);
-  }, [target.current, resize]);
-}
-
 // Node editor
 
 const NodeEditor = () => {
@@ -183,6 +164,14 @@ const SidePanel = () => {
       <LocaleChangeButton locale="zh-Hant" />
       <br />
       <FormattedMessage id="app-description" />
+  </div>
+}
+
+const InspectorPanel = () => {
+  const inspectorData = useAtomValue(inspectorDataAtom);
+
+  return <div className="sidePanel">
+    {inspectorData}
   </div>
 }
 
@@ -215,9 +204,14 @@ export default function App() {
         <div className="rowPanels" >
           <div className="columnPanels" >
             <Suspense fallback={<ViewportFallback />}><Viewport /></Suspense>
+            <Editor />
             <Suspense fallback={<ViewportFallback />}><NodeEditor /></Suspense>
           </div>
-          <SidePanel />
+          <div className="columnPanels">
+            <SidePanel />
+            <br />
+            <InspectorPanel />
+          </div>
         </div>
       </div>
     </body>

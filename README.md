@@ -3,7 +3,17 @@
 a experiment I did a year ago to port an app to web APIs
 
 ```
+cd emsdk
+.\emsdk activate latest
+cd ..
+cd pwa-experiment
 npm install
+cd rect-project
+mkdir build
+cd build
+emcmake cmake ..
+cmake --build .
+cd ../..
 npm run build
 ```
 
