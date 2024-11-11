@@ -20,11 +20,11 @@ export const Editor = () => {
     let viewportRef = React.createRef<HTMLDivElement>(); // needed for the resize observer
     let nullRef = React.createRef<HTMLCanvasElement>();
     let canvasRef = React.createRef<HTMLCanvasElement>();
-    useResizeObserver(viewportRef, nullRef, (width, height) => {
+    useResizeObserver(viewportRef, (width, height) => {
         setSize([width, height, `${width / devicePixelRatio}px`, `${height / devicePixelRatio}px`]);
     });
     let onClick = useEditorOnClick();
-    useEditor(canvasRef, size, setIs2DCanvasSupported);
+    useEditor(canvasRef, setIs2DCanvasSupported);
     const [width, height, widthPX, heightPX] = size;
     return <div className="viewport" style={{ flexBasis: "300px" }} ref={viewportRef}>
         {
@@ -42,7 +42,6 @@ type Renderer = {canvas: HTMLCanvasElement, ctx: CanvasRenderingContext2D};
 
 export function useEditor(
     canvasRef: React.RefObject<HTMLCanvasElement>,
-    size: [number, number],
     setIs2DCanvasSupported: (arg:boolean)=>void
 ) {
     const [rectList, setRectList] = useAtom(rectListAtom);

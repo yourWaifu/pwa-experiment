@@ -2,7 +2,6 @@ import * as React from "react";
 
 export function useResizeObserver(
     target: React.RefObject<HTMLDivElement>,
-    canvasRef: React.RefObject<HTMLCanvasElement>,
     resize: ((w: number, h: number) => void) | undefined
 ) {
     React.useEffect(() => {

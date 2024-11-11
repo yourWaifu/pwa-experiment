@@ -94,7 +94,7 @@ const Viewport = () => {
   
   let viewportRef = React.createRef<HTMLDivElement>(); // needed for the resize observer
   let canvasRef = React.createRef<HTMLCanvasElement>(); // needed for init Camera
-  useResizeObserver(viewportRef, canvasRef, resize?.resize);
+  useResizeObserver(viewportRef, resize?.resize);
 
   return <div ref={viewportRef} className="viewport">
     {

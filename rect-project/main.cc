@@ -28,8 +28,16 @@ float randomFloat(float min, float max) {
 emscripten::val getRectList(int seed) {
     std::list<Rect> rectList{};
     srand(seed);
+    const float minPos = -5.0;
+    const float maxCanvasWidth = 700.0;
+    const float maxCannasHeight = 200.0;
+    const float minRectSize = 10.0;
+    const float maxRectSize = 100.0;
     for (int i = 0; i < 10; i += 1) {
-        Rect random{randomFloat(0.0, 600.00), randomFloat(0.0, 200.0), randomFloat(10.0, 100.0), randomFloat(10.0, 200.0)};
+        Rect random{
+            randomFloat(minPos, maxCanvasWidth), randomFloat(minPos, maxCannasHeight),
+            randomFloat(minRectSize, maxRectSize), randomFloat(minRectSize, maxRectSize)
+        };
         rectList.push_front(random);
     }
     std::vector<float> rectBuffer;
