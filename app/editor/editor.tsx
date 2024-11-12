@@ -18,19 +18,17 @@ const selectedAtom = atom<number|null>((get) => get(inspectorDataAtom).index);
 
 export const Editor = () => {
     const [is2DCanvasSupported, setIs2DCanvasSupported] = React.useState(true);
-    const [size, setSize] = React.useState([300, 300, "300px", "300px"]);
+    const [size, setSize] = React.useState([300, 300, "100%", "100%"]);
     let viewportRef = React.createRef<HTMLDivElement>(); // needed for the resize observer
-    let nullRef = React.createRef<HTMLCanvasElement>();
-    let canvasRef = React.createRef<HTMLCanvasElement>();
     useResizeObserver(viewportRef, (width, height) => {
         setSize([width, height, `${width / devicePixelRatio}px`, `${height / devicePixelRatio}px`]);
     });
     let onClick = useEditorOnClick();
-    useEditor(canvasRef, setIs2DCanvasSupported);
     const [width, height, widthPX, heightPX] = size;
+    let refCallback = useEditor(setIs2DCanvasSupported, width, height);
     return <div className="viewport" style={{ flexBasis: "300px" }} ref={viewportRef}>
         {
-            is2DCanvasSupported ? <canvas ref={canvasRef}
+            is2DCanvasSupported ? <canvas ref={refCallback}
                 width={width} height={height}
                 style={{ width: widthPX, height: heightPX }}
                 onClick={onClick}
@@ -40,14 +38,13 @@ export const Editor = () => {
     </div>;
 }
 
-type Renderer = {canvas: HTMLCanvasElement, ctx: CanvasRenderingContext2D};
-
 export function useEditor(
-    canvasRef: React.RefObject<HTMLCanvasElement>,
-    setIs2DCanvasSupported: (arg:boolean)=>void
+    setIs2DCanvasSupported: (arg:boolean)=>void,
+    width: number, height: number,
 ) {
     const [rectList, setRectList] = useAtom(rectListAtom);
     const selectedIndex = useAtomValue(selectedAtom);
+    let canvasRef = React.useRef<HTMLCanvasElement | null>(null);
     React.useEffect(() => {
         if (CXXPromise) {return;}
         CXXPromise = createCXX();
@@ -61,39 +58,47 @@ export function useEditor(
             setRectList(incomingRectList);
         })();
     }, [setRectList]);
-    React.useEffect(() => {
-        if (!canvasRef.current) {
-            return;
-        }
-        let ctx = canvasRef.current?.getContext("2d");
-        if (!ctx) {
+    const renderer = useCallback((canvas: HTMLCanvasElement | null) => {
+        if (canvas === null) { return; }
+
+        if (!canvasRef.current && !canvas.getContext("2d")) {
             setIs2DCanvasSupported(false);
             return;
         }
-        renderEditor(ctx, canvasRef.current, rectList, selectedIndex)
-    }, [canvasRef, rectList, selectedIndex]);
+        canvasRef.current = canvas;
+        renderEditor(canvas, rectList, selectedIndex);
+    }, [setIs2DCanvasSupported, rectList, selectedIndex, width, height]);
+    return renderer;
 }
 
 export function renderEditor(
-    ctx: CanvasRenderingContext2D,
     canvas: HTMLCanvasElement,
     rectList: AABB[],
     selected: number|null
 ) {
+    let ctx = canvas?.getContext("2d");
+    if (!ctx) {
+        throw new Error("getContext 2D failed")
+        return;
+    }
     ctx.clearRect(0, 0, canvas.width, canvas.height);
-    rectList.forEach((rect, index) => {
-        const [x, y, w, h] = [
-            rect.ax * devicePixelRatio, rect.ay * devicePixelRatio,
-            (rect.bx - rect.ax) * devicePixelRatio, (rect.by - rect.ay) * devicePixelRatio
+    const getRect = (aabb: AABB) => {
+        return [
+            aabb.ax * devicePixelRatio, aabb.ay * devicePixelRatio,
+            (aabb.bx - aabb.ax) * devicePixelRatio, (aabb.by - aabb.ay) * devicePixelRatio
         ];
+    }
+    rectList.forEach((aabb, index) => {
+        const [x, y, w, h] = getRect(aabb);
         ctx.fillStyle = "oklch(50.51% 0.1585 30.44)";
         ctx.fillRect(x, y, w, h);
-        if (index === selected) {
-            ctx.strokeStyle = "oklch(19.04% 0.0425 147.77)";
-            ctx.lineWidth = 2 * devicePixelRatio;
-            ctx.strokeRect(x, y, w, h);
-        }
     });
+    if (selected !== null) {
+        const [x, y, w, h] = getRect(rectList[selected]);
+        ctx.strokeStyle = "oklch(19.04% 0.0425 147.77)";
+        ctx.lineWidth = 2 * devicePixelRatio;
+        ctx.strokeRect(x, y, w, h);
+    }
 }
 
 export function useEditorOnClick(): React.MouseEventHandler<HTMLCanvasElement> {
@@ -107,7 +112,6 @@ export function useEditorOnClick(): React.MouseEventHandler<HTMLCanvasElement> {
             // aabb
             return rect.ax <= x && rect.ay <= y && x <= rect.bx && y <= rect.by;
         });
-        console.log(clickedRectIndex);
         if (clickedRectIndex !== -1) {
             let rect = rectList[clickedRectIndex];
             setInspectorDataAtom({
@@ -125,5 +129,5 @@ export function useEditorOnClick(): React.MouseEventHandler<HTMLCanvasElement> {
                 message: <p>Null</p>,
             });
         }
-    }, [rectList])
+    }, [rectList, setInspectorDataAtom])
 }
